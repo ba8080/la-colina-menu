@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#28180f" />
+    <meta
+      name="description"
+      content="התפריט של La Colina — אוכל, יין, בירה, קוקטיילים ומתוקים בגבעת ברנר."
+    />
+    <title>La Colina | התפריט שלנו</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23452617'/%3E%3Ctext x='32' y='39' font-family='Georgia,serif' font-weight='700' font-size='23' text-anchor='middle' fill='%23fffaf1'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="preload" href="la-colina-logo.webp" as="image" type="image/webp" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#menuContent">דילוג לתפריט</a>
+    <header class="site-header" aria-label="כותרת האתר">
+      <a class="brand" href="#top" aria-label="La Colina — חזרה לראש התפריט">
+        <img src="la-colina-logo.webp" alt="La Colina" width="52" height="52" />
+        <span>
+          <strong>LA COLINA</strong>
+          <small>WINE · גבעת ברנר</small>
+        </span>
+      </a>
+      <div class="header-actions">
+        <a
+          class="icon-button instagram-button"
+          href="https://www.instagram.com/lacolina_wine?stkn=MW9tMjI0Mm9nMmh5cQ=="
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="La Colina Wine באינסטגרם"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+            <circle cx="12" cy="12" r="3.8" />
+            <circle class="instagram-dot" cx="17.5" cy="6.8" r="1" />
+          </svg>
+        </a>
+        <button class="icon-button" id="shareButton" type="button" aria-label="שיתוף התפריט">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 16V3m0 0L7.5 7.5M12 3l4.5 4.5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="pageTitle">
+        <video id="wineVideo" class="hero-video" muted loop playsinline preload="metadata" poster="la-colina-wine-evening.webp" aria-label="אווירת הערב בלה קולינה">
+          <source src="la-colina-wine-evening.mp4" type="video/mp4">
+        </video>
+        <button id="wineVideoToggle" class="wine-video-toggle" type="button" aria-label="הפעלת סרטון האווירה" aria-pressed="false">הפעלת הסרטון</button>
+        <span class="hero-vignette" aria-hidden="true"></span>
+        <div class="hero-copy">
+          <p class="eyebrow">LA COLINA WINE</p>
+          <h1 id="pageTitle">משהו טוב <em>לערב.</em></h1>
+          <p class="hero-note">התפריט שלנו · אוכל, יין וכל מה שביניהם</p>
+        </div>
+        <div class="hero-seal" aria-hidden="true">
+          <span>LA COLINA</span>
+          <strong>LC</strong>
+          <span>WINE</span>
+        </div>
+      </section>
+
+      <section class="menu-shell" aria-label="התפריט">
+        <div class="menu-navigation">
+        <div class="view-switcher" role="tablist" aria-label="בחירת תפריט">
+          <button class="view-tab is-active" id="foodTab" type="button" role="tab" aria-controls="menuContent" aria-selected="true" data-view="food">
+            <strong>משהו לאכול</strong>
+          </button>
+          <button class="view-tab" id="wineTab" type="button" role="tab" aria-controls="menuContent" aria-selected="false" tabindex="-1" data-view="wine">
+            <strong>משהו לשתות</strong>
+          </button>
+        </div>
+
+        <nav class="category-rail" id="categoryRail" aria-label="קטגוריות בתפריט"></nav>
+        </div>
+
+        <div id="menuContent" role="tabpanel" aria-labelledby="foodTab" tabindex="0"></div>
+      </section>
+
+      <section class="coffee-note" aria-label="עגלת הקפה בשבת">
+        <div class="coffee-media" aria-hidden="true">
+          <video
+            class="coffee-video js-ambient-video"
+            muted
+            loop
+            playsinline
+            preload="none"
+            poster="la-colina-coffee-poster.webp"
+          >
+            <source src="la-colina-coffee.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div class="coffee-content">
+          <p class="eyebrow">SATURDAY COFFEE CART</p>
+          <h2>בשבת אנחנו<br />עגלת קפה.</h2>
+          <p class="coffee-description">בימי שבת אנחנו פועלים כעגלת קפה.</p>
+          <button id="motionToggle" class="motion-toggle" type="button" aria-pressed="false">הפעלת הסרטון</button>
+        </div>
+      </section>
+
+      <section class="instagram-card" aria-labelledby="instagramTitle">
+        <div class="instagram-profile" aria-hidden="true">
+          <span class="instagram-ring">
+            <img src="la-colina-logo.webp" alt="" width="88" height="88" />
+          </span>
+        </div>
+        <div class="instagram-copy">
+          <p class="eyebrow">LA COLINA · INSTAGRAM</p>
+          <h2 id="instagramTitle">La Colina<br />גם באינסטגרם.</h2>
+          <p>ליין היין של הערב ועגלת הקפה של שבת — בחרו אחרי איזה עמוד לעקוב.</p>
+        </div>
+        <div class="instagram-actions">
+          <a
+            class="instagram-cta"
+            href="https://www.instagram.com/lacolina_wine?stkn=MW9tMjI0Mm9nMmh5cQ=="
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="האינסטגרם של עגלת היין"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+              <circle cx="12" cy="12" r="3.8" />
+              <circle class="instagram-dot" cx="17.5" cy="6.8" r="1" />
+            </svg>
+            <span>עגלת היין</span>
+            <span aria-hidden="true">←</span>
+          </a>
+          <a
+            class="instagram-cta is-coffee"
+            href="https://www.instagram.com/lacolina_brener?stkn=d3VseW1iYm91b29j"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="האינסטגרם של עגלת הקפה"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+              <circle cx="12" cy="12" r="3.8" />
+              <circle class="instagram-dot" cx="17.5" cy="6.8" r="1" />
+            </svg>
+            <span>עגלת הקפה</span>
+            <span aria-hidden="true">←</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="service-note" aria-label="מידע חשוב">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" />
+          <path d="M12 10v6m0-9h.01" />
+        </svg>
+        <p>יש לכם אלרגיה או רגישות? דברו איתנו לפני ההזמנה ונשמח לעזור.</p>
+      </section>
+    </main>
+
+    <footer>
+      <img src="la-colina-logo.webp" alt="" width="68" height="68" />
+      <p><strong>LA COLINA WINE</strong><br />עגלת יין בגבעת ברנר · בשבת עגלת קפה</p>
+      <button class="back-to-top" id="backToTop" type="button">חזרה למעלה ↑</button>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
