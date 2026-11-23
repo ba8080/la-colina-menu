@@ -1092,3 +1092,113 @@ html { scroll-padding-top: calc(var(--header-height) + var(--nav-height) + 16px)
   }
 
 }
+
+/* Accessibility controls */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.accessibility-trigger {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 90;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 10px 15px;
+  border: 2px solid #fffdf8;
+  border-radius: 999px;
+  background: #572532;
+  color: #fffdf8;
+  box-shadow: 0 8px 26px rgba(35, 19, 25, 0.3);
+  font: 700 1rem/1 var(--sans);
+  cursor: pointer;
+}
+
+.accessibility-trigger svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.accessibility-panel {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 62px);
+  z-index: 95;
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(620px, calc(100vh - 110px));
+  overflow-y: auto;
+  padding: 18px;
+  border: 2px solid #572532;
+  border-radius: 20px;
+  background: #fffdf8;
+  color: #271a15;
+  box-shadow: 0 18px 54px rgba(35, 19, 25, 0.28);
+}
+
+.accessibility-panel[hidden] { display: none; }
+.accessibility-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.accessibility-panel h2 { margin: 0; font: 700 1.35rem/1.3 var(--sans); }
+.accessibility-close { width: 44px; height: 44px; border: 1px solid #cdbfb1; border-radius: 50%; background: #f5f0e7; color: #271a15; font-size: 1.8rem; line-height: 1; cursor: pointer; }
+.accessibility-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.accessibility-controls button {
+  min-height: 48px;
+  padding: 10px;
+  border: 1px solid #cdbfb1;
+  border-radius: 11px;
+  background: #f5f0e7;
+  color: #271a15;
+  font: 700 0.95rem/1.35 var(--sans);
+  cursor: pointer;
+}
+.accessibility-controls button[aria-pressed="true"] { border-color: #572532; background: #572532; color: white; }
+.accessibility-controls .accessibility-reset { grid-column: 1 / -1; background: #fffdf8; }
+.accessibility-panel-statement { display: block; margin-top: 14px; padding-top: 14px; border-top: 1px solid #ded3c6; color: #572532; font-weight: 700; text-align: center; }
+.accessibility-statement-link { color: #fffdf8; font-weight: 700; text-underline-offset: 4px; }
+
+html.a11y-links a { text-decoration: underline !important; text-decoration-thickness: 3px !important; text-underline-offset: 4px !important; }
+html.a11y-readable, html.a11y-readable * { font-family: Arial, "Noto Sans Hebrew", sans-serif !important; letter-spacing: normal !important; }
+html.a11y-no-motion { scroll-behavior: auto !important; }
+html.a11y-no-motion *, html.a11y-no-motion *::before, html.a11y-no-motion *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+
+html.a11y-high-contrast body,
+html.a11y-high-contrast .menu-shell,
+html.a11y-high-contrast .menu-navigation,
+html.a11y-high-contrast .menu-card,
+html.a11y-high-contrast .price-option,
+html.a11y-high-contrast .accessibility-panel {
+  background: #000 !important;
+  color: #fff !important;
+}
+html.a11y-high-contrast .menu-card,
+html.a11y-high-contrast .price-option,
+html.a11y-high-contrast .accessibility-panel,
+html.a11y-high-contrast .accessibility-controls button {
+  border-color: #fff !important;
+}
+html.a11y-high-contrast .description,
+html.a11y-high-contrast .section-heading span,
+html.a11y-high-contrast .price-option small { color: #fff !important; }
+html.a11y-high-contrast a { color: #ffea00 !important; }
+html.a11y-high-contrast button { outline-color: #ffea00; }
+
+@media (max-width: 520px) {
+  .accessibility-trigger span { display: none; }
+  .accessibility-trigger { width: 52px; height: 52px; justify-content: center; padding: 0; }
+  .accessibility-panel { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 66px); }
+}
