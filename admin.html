@@ -178,7 +178,7 @@
         <h1>ניהול מחירים</h1>
         <p>הכניסה מיועדת למנהל התפריט בלבד.</p>
         <label class="token-label">
-          אסימון גישה
+          סיסמה
           <input class="token-input" id="tokenInput" type="password" autocomplete="current-password" required />
         </label>
         <label class="remember">
@@ -187,7 +187,7 @@
         </label>
         <button class="btn btn-primary" id="loginButton" type="submit">כניסה למערכת</button>
         <p class="error" id="loginError" role="alert"></p>
-        <div class="help">האסימון נשמר רק במכשיר שלך ואינו מופיע בקוד האתר. מומלץ להשתמש בהרשאה מוגבלת למאגר La Colina בלבד.</div>
+        <div class="help">הסיסמה נבדקת בצורה מאובטחת בצד השרת ואינה נשמרת בדפדפן.</div>
       </form>
     </section>
 
@@ -206,7 +206,7 @@
       <main>
         <div class="hero">
           <h1>עדכון מחירים</h1>
-          <p>משנים את המחיר ולוחצים על “שמירת שינויים”. העדכון באתר עשוי להופיע בתוך דקה או שתיים.</p>
+          <p>משנים את המחיר ולוחצים על “שמירת שינויים”. המחירים החדשים מתעדכנים באתר מיד.</p>
         </div>
         <div class="toolbar">
           <input class="search" id="searchInput" type="search" placeholder="חיפוש מוצר או קטגוריה…" />
@@ -219,10 +219,7 @@
     <div class="toast" id="toast" role="status"></div>
 
     <script>
-      const REPOSITORY = "ba8080/la-colina-menu";
-      const BRANCH = "main";
-      const DATA_FILE = "menu-data.json";
-      const API_URL = `https://api.github.com/repos/${REPOSITORY}/contents/${DATA_FILE}`;
+      const API_URL = "https://la-colina-menu-service.oribra.chatgpt.site";
 
       const loginView = document.querySelector("#loginView");
       const adminView = document.querySelector("#adminView");
@@ -239,32 +236,8 @@
 
       let accessToken = localStorage.getItem("laColinaAdminToken") || sessionStorage.getItem("laColinaAdminToken") || "";
       let menuData = null;
-      let fileSha = "";
       let isDirty = false;
       let toastTimer;
-
-      function apiHeaders(token = accessToken) {
-        return {
-          Accept: "application/vnd.github+json",
-          Authorization: `Bearer ${token}`,
-          "X-GitHub-Api-Version": "2022-11-28",
-        };
-      }
-
-      function decodeContent(value) {
-        const binary = atob(value.replace(/\n/g, ""));
-        const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
-        return new TextDecoder().decode(bytes);
-      }
-
-      function encodeContent(value) {
-        const bytes = new TextEncoder().encode(value);
-        let binary = "";
-        for (let index = 0; index < bytes.length; index += 0x8000) {
-          binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
-        }
-        return btoa(binary);
-      }
 
       function showToast(message, error = false) {
         clearTimeout(toastTimer);
@@ -281,15 +254,13 @@
         saveStatus.className = `status ${dirty ? "dirty" : "saved"}`;
       }
 
-      async function loadMenu(token) {
-        const response = await fetch(`${API_URL}?ref=${BRANCH}&t=${Date.now()}`, { headers: apiHeaders(token), cache: "no-store" });
+      async function loadMenu() {
+        const response = await fetch(`${API_URL}/menu?t=${Date.now()}`, { cache: "no-store" });
         if (!response.ok) {
-          if (response.status === 401 || response.status === 403) throw new Error("אסימון הגישה אינו תקין או שחסרה לו הרשאת כתיבה.");
           throw new Error("לא הצלחנו לטעון את התפריט. נסו שוב בעוד רגע.");
         }
-        const file = await response.json();
-        menuData = JSON.parse(decodeContent(file.content));
-        fileSha = file.sha;
+        const result = await response.json();
+        menuData = result.menu;
       }
 
       function createPriceField(label, value, onChange) {
@@ -382,19 +353,31 @@
         }
       }
 
-      async function enterAdmin(token, remember) {
+      async function showAdmin(token, remember) {
+        accessToken = token;
+        if (remember) localStorage.setItem("laColinaAdminToken", token);
+        else sessionStorage.setItem("laColinaAdminToken", token);
+        await loadMenu();
+        loginView.classList.add("hidden");
+        adminView.classList.remove("hidden");
+        renderEditor();
+        setDirty(false);
+      }
+
+      async function enterAdmin(password, remember) {
         loginButton.disabled = true;
         loginButton.textContent = "מתחבר…";
         loginError.textContent = "";
         try {
-          await loadMenu(token);
-          accessToken = token;
-          if (remember) localStorage.setItem("laColinaAdminToken", token);
-          else sessionStorage.setItem("laColinaAdminToken", token);
-          loginView.classList.add("hidden");
-          adminView.classList.remove("hidden");
-          renderEditor();
-          setDirty(false);
+          const response = await fetch(`${API_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password }),
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "הסיסמה שגויה.");
+          tokenInput.value = "";
+          await showAdmin(result.token, remember);
         } catch (error) {
           loginError.textContent = error.message;
           localStorage.removeItem("laColinaAdminToken");
@@ -417,23 +400,22 @@
         saveButton.disabled = true;
         saveButton.textContent = "שומר…";
         try {
-          const response = await fetch(API_URL, {
+          const response = await fetch(`${API_URL}/menu`, {
             method: "PUT",
-            headers: { ...apiHeaders(), "Content-Type": "application/json" },
-            body: JSON.stringify({
-              message: "Update menu prices from admin panel",
-              content: encodeContent(`${JSON.stringify(menuData, null, 2)}\n`),
-              sha: fileSha,
-              branch: BRANCH,
-            }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({ menu: menuData }),
           });
-          if (!response.ok) {
-            if (response.status === 409) throw new Error("התפריט השתנה ממקום אחר. רעננו את העמוד ונסו שוב.");
-            if (response.status === 401 || response.status === 403) throw new Error("אין הרשאה לשמור את השינויים.");
-            throw new Error("השמירה נכשלה. נסו שוב בעוד רגע.");
-          }
           const result = await response.json();
-          fileSha = result.content.sha;
+          if (!response.ok) {
+            if (response.status === 401) {
+              localStorage.removeItem("laColinaAdminToken");
+              sessionStorage.removeItem("laColinaAdminToken");
+            }
+            throw new Error(result.error || "השמירה נכשלה. נסו שוב בעוד רגע.");
+          }
           setDirty(false);
           showToast("המחירים נשמרו בהצלחה");
         } catch (error) {
@@ -456,7 +438,13 @@
         event.returnValue = "";
       });
 
-      if (accessToken) enterAdmin(accessToken, Boolean(localStorage.getItem("laColinaAdminToken")));
+      if (accessToken) {
+        showAdmin(accessToken, Boolean(localStorage.getItem("laColinaAdminToken"))).catch(() => {
+          localStorage.removeItem("laColinaAdminToken");
+          sessionStorage.removeItem("laColinaAdminToken");
+          location.reload();
+        });
+      }
     </script>
   </body>
 </html>

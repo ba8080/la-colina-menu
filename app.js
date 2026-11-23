@@ -1,9 +1,17 @@
 let menuData = { food: [], wine: [] };
+const MENU_API_URL = "https://la-colina-menu-service.oribra.chatgpt.site/menu";
 
 async function loadMenuData() {
-  const response = await fetch("./menu-data.json", { cache: "no-store" });
-  if (!response.ok) throw new Error(`Menu request failed: ${response.status}`);
-  menuData = await response.json();
+  try {
+    const response = await fetch(MENU_API_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Menu API request failed: ${response.status}`);
+    const result = await response.json();
+    menuData = result.menu;
+  } catch (error) {
+    const fallback = await fetch("./menu-data.json", { cache: "no-store" });
+    if (!fallback.ok) throw error;
+    menuData = await fallback.json();
+  }
 }
 
 const drinkCategories = [
