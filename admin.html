@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>ניהול מחירים | La Colina</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #262018;
+        --muted: #746b5f;
+        --paper: #f6f1e8;
+        --card: #fffdf8;
+        --line: #ded5c7;
+        --brand: #714737;
+        --brand-dark: #523126;
+        --success: #24734d;
+        --danger: #9b352d;
+        font-family: Arial, "Noto Sans Hebrew", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; color: var(--ink); background: var(--paper); }
+      button, input { font: inherit; }
+      button { cursor: pointer; }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px clamp(16px, 4vw, 42px);
+        background: rgba(246, 241, 232, 0.96);
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(12px);
+      }
+
+      .brand { display: flex; align-items: center; gap: 12px; }
+      .brand img { width: 44px; height: 44px; object-fit: contain; }
+      .brand strong { display: block; font-size: 1.05rem; }
+      .brand span { color: var(--muted); font-size: 0.88rem; }
+      .top-actions { display: flex; align-items: center; gap: 10px; }
+
+      .btn {
+        min-height: 44px;
+        padding: 0 18px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        color: var(--ink);
+        background: var(--card);
+        font-weight: 700;
+      }
+      .btn-primary { color: white; background: var(--brand); border-color: var(--brand); }
+      .btn-primary:hover { background: var(--brand-dark); }
+      .btn:disabled { cursor: wait; opacity: 0.55; }
+
+      main { width: min(1080px, calc(100% - 32px)); margin: 28px auto 80px; }
+      .hero { margin-bottom: 24px; }
+      .hero h1 { margin: 0 0 8px; font-size: clamp(1.7rem, 4vw, 2.5rem); }
+      .hero p { margin: 0; color: var(--muted); line-height: 1.65; }
+
+      .toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 22px;
+      }
+      .search {
+        width: 100%;
+        min-height: 48px;
+        padding: 0 16px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        color: var(--ink);
+        background: var(--card);
+      }
+      .status { color: var(--muted); font-weight: 700; white-space: nowrap; }
+      .status.dirty { color: #a16019; }
+      .status.saved { color: var(--success); }
+
+      .section-card {
+        margin-bottom: 20px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--card);
+        box-shadow: 0 12px 35px rgba(67, 45, 29, 0.06);
+      }
+      .section-title { margin: 0; padding: 18px 20px; font-size: 1.2rem; border-bottom: 1px solid var(--line); }
+      .item-row {
+        display: grid;
+        grid-template-columns: minmax(190px, 1fr) minmax(220px, 1.2fr);
+        gap: 18px;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid #ece5da;
+      }
+      .item-row:last-child { border-bottom: 0; }
+      .item-name { font-weight: 700; line-height: 1.4; }
+      .item-description { margin-top: 4px; color: var(--muted); font-size: 0.88rem; line-height: 1.45; }
+      .price-fields { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 10px; }
+      .price-field { display: grid; gap: 5px; min-width: 88px; }
+      .price-field label { color: var(--muted); font-size: 0.8rem; font-weight: 700; }
+      .price-input-wrap { position: relative; }
+      .price-input {
+        width: 100%;
+        min-height: 44px;
+        padding: 0 12px 0 30px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        color: var(--ink);
+        background: white;
+        font-weight: 700;
+      }
+      .price-input:focus { outline: 3px solid rgba(113, 71, 55, 0.15); border-color: var(--brand); }
+      .currency { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+
+      .login-shell { display: grid; min-height: 100vh; place-items: center; padding: 24px; }
+      .login-card {
+        width: min(460px, 100%);
+        padding: 30px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--card);
+        box-shadow: 0 24px 70px rgba(67, 45, 29, 0.12);
+      }
+      .login-logo { width: 72px; height: 72px; object-fit: contain; display: block; margin: 0 auto 16px; }
+      .login-card h1 { margin: 0 0 8px; text-align: center; }
+      .login-card > p { margin: 0 0 24px; color: var(--muted); text-align: center; line-height: 1.6; }
+      .token-label { display: grid; gap: 8px; font-weight: 700; }
+      .token-input { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; direction: ltr; }
+      .remember { display: flex; align-items: center; gap: 9px; margin: 14px 0 20px; color: var(--muted); }
+      .login-card .btn { width: 100%; }
+      .help { margin-top: 18px; color: var(--muted); font-size: 0.84rem; line-height: 1.55; }
+      .error { min-height: 22px; margin: 12px 0 0; color: var(--danger); font-size: 0.9rem; font-weight: 700; }
+      .hidden { display: none !important; }
+
+      .toast {
+        position: fixed;
+        right: 50%;
+        bottom: 22px;
+        z-index: 30;
+        transform: translateX(50%) translateY(16px);
+        max-width: min(460px, calc(100% - 32px));
+        padding: 13px 18px;
+        border-radius: 13px;
+        color: white;
+        background: var(--success);
+        opacity: 0;
+        pointer-events: none;
+        transition: 180ms ease;
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18);
+      }
+      .toast.show { opacity: 1; transform: translateX(50%) translateY(0); }
+      .toast.error-toast { background: var(--danger); }
+
+      @media (max-width: 680px) {
+        .topbar { align-items: flex-start; }
+        .brand span { display: none; }
+        .top-actions { flex-direction: column-reverse; align-items: stretch; }
+        .top-actions .btn { min-height: 38px; padding: 0 12px; font-size: 0.86rem; }
+        .toolbar { grid-template-columns: 1fr; }
+        .item-row { grid-template-columns: 1fr; gap: 12px; }
+        .price-fields { justify-content: stretch; }
+        .price-field { flex: 1 1 92px; }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="login-shell" id="loginView">
+      <form class="login-card" id="loginForm">
+        <img class="login-logo" src="la-colina-logo.webp" alt="La Colina" />
+        <h1>ניהול מחירים</h1>
+        <p>הכניסה מיועדת למנהל התפריט בלבד.</p>
+        <label class="token-label">
+          אסימון גישה
+          <input class="token-input" id="tokenInput" type="password" autocomplete="current-password" required />
+        </label>
+        <label class="remember">
+          <input id="rememberToken" type="checkbox" />
+          לזכור אותי במכשיר הזה
+        </label>
+        <button class="btn btn-primary" id="loginButton" type="submit">כניסה למערכת</button>
+        <p class="error" id="loginError" role="alert"></p>
+        <div class="help">האסימון נשמר רק במכשיר שלך ואינו מופיע בקוד האתר. מומלץ להשתמש בהרשאה מוגבלת למאגר La Colina בלבד.</div>
+      </form>
+    </section>
+
+    <div class="hidden" id="adminView">
+      <header class="topbar">
+        <div class="brand">
+          <img src="la-colina-logo.webp" alt="" />
+          <div><strong>La Colina</strong><span>מנהל מחירי התפריט</span></div>
+        </div>
+        <div class="top-actions">
+          <button class="btn" id="logoutButton" type="button">יציאה</button>
+          <button class="btn btn-primary" id="saveButton" type="button" disabled>שמירת שינויים</button>
+        </div>
+      </header>
+
+      <main>
+        <div class="hero">
+          <h1>עדכון מחירים</h1>
+          <p>משנים את המחיר ולוחצים על “שמירת שינויים”. העדכון באתר עשוי להופיע בתוך דקה או שתיים.</p>
+        </div>
+        <div class="toolbar">
+          <input class="search" id="searchInput" type="search" placeholder="חיפוש מוצר או קטגוריה…" />
+          <span class="status" id="saveStatus">הכול מעודכן</span>
+        </div>
+        <div id="menuEditor"></div>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <script>
+      const REPOSITORY = "ba8080/la-colina-menu";
+      const BRANCH = "main";
+      const DATA_FILE = "menu-data.json";
+      const API_URL = `https://api.github.com/repos/${REPOSITORY}/contents/${DATA_FILE}`;
+
+      const loginView = document.querySelector("#loginView");
+      const adminView = document.querySelector("#adminView");
+      const loginForm = document.querySelector("#loginForm");
+      const loginButton = document.querySelector("#loginButton");
+      const loginError = document.querySelector("#loginError");
+      const tokenInput = document.querySelector("#tokenInput");
+      const rememberToken = document.querySelector("#rememberToken");
+      const editor = document.querySelector("#menuEditor");
+      const searchInput = document.querySelector("#searchInput");
+      const saveButton = document.querySelector("#saveButton");
+      const saveStatus = document.querySelector("#saveStatus");
+      const toast = document.querySelector("#toast");
+
+      let accessToken = localStorage.getItem("laColinaAdminToken") || sessionStorage.getItem("laColinaAdminToken") || "";
+      let menuData = null;
+      let fileSha = "";
+      let isDirty = false;
+      let toastTimer;
+
+      function apiHeaders(token = accessToken) {
+        return {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${token}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+        };
+      }
+
+      function decodeContent(value) {
+        const binary = atob(value.replace(/\n/g, ""));
+        const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+      }
+
+      function encodeContent(value) {
+        const bytes = new TextEncoder().encode(value);
+        let binary = "";
+        for (let index = 0; index < bytes.length; index += 0x8000) {
+          binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+        }
+        return btoa(binary);
+      }
+
+      function showToast(message, error = false) {
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.toggle("error-toast", error);
+        toast.classList.add("show");
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 3200);
+      }
+
+      function setDirty(dirty) {
+        isDirty = dirty;
+        saveButton.disabled = !dirty;
+        saveStatus.textContent = dirty ? "יש שינויים שלא נשמרו" : "הכול מעודכן";
+        saveStatus.className = `status ${dirty ? "dirty" : "saved"}`;
+      }
+
+      async function loadMenu(token) {
+        const response = await fetch(`${API_URL}?ref=${BRANCH}&t=${Date.now()}`, { headers: apiHeaders(token), cache: "no-store" });
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) throw new Error("אסימון הגישה אינו תקין או שחסרה לו הרשאת כתיבה.");
+          throw new Error("לא הצלחנו לטעון את התפריט. נסו שוב בעוד רגע.");
+        }
+        const file = await response.json();
+        menuData = JSON.parse(decodeContent(file.content));
+        fileSha = file.sha;
+      }
+
+      function createPriceField(label, value, onChange) {
+        const field = document.createElement("div");
+        field.className = "price-field";
+        const labelElement = document.createElement("label");
+        labelElement.textContent = label;
+        const wrap = document.createElement("div");
+        wrap.className = "price-input-wrap";
+        const input = document.createElement("input");
+        input.className = "price-input";
+        input.type = "number";
+        input.inputMode = "decimal";
+        input.min = "0";
+        input.step = "1";
+        input.value = value;
+        input.setAttribute("aria-label", label);
+        input.addEventListener("input", () => {
+          const number = Number(input.value);
+          if (!Number.isFinite(number) || number < 0) return;
+          onChange(number);
+          setDirty(true);
+        });
+        const currency = document.createElement("span");
+        currency.className = "currency";
+        currency.textContent = "₪";
+        wrap.append(input, currency);
+        field.append(labelElement, wrap);
+        return field;
+      }
+
+      function renderEditor(filter = "") {
+        editor.replaceChildren();
+        const query = filter.trim().toLowerCase();
+        const fragment = document.createDocumentFragment();
+
+        Object.values(menuData).flat().forEach((section) => {
+          const matchingItems = section.items.filter((item) => `${section.title} ${item.name} ${item.description || ""}`.toLowerCase().includes(query));
+          if (!matchingItems.length) return;
+
+          const card = document.createElement("section");
+          card.className = "section-card";
+          const title = document.createElement("h2");
+          title.className = "section-title";
+          title.textContent = section.title;
+          card.append(title);
+
+          matchingItems.forEach((item) => {
+            const row = document.createElement("div");
+            row.className = "item-row";
+            const info = document.createElement("div");
+            const name = document.createElement("div");
+            name.className = "item-name";
+            name.textContent = item.name;
+            info.append(name);
+            if (item.description) {
+              const description = document.createElement("div");
+              description.className = "item-description";
+              description.textContent = item.description;
+              info.append(description);
+            }
+
+            const fields = document.createElement("div");
+            fields.className = "price-fields";
+            if (typeof item.price === "number") {
+              fields.append(createPriceField(item.priceLabel || "מחיר", item.price, (value) => { item.price = value; }));
+            }
+            if (Array.isArray(item.priceOptions)) {
+              item.priceOptions.forEach((value, index) => {
+                fields.append(createPriceField(`אפשרות ${index + 1}`, value, (nextValue) => { item.priceOptions[index] = nextValue; }));
+              });
+            }
+            if (Array.isArray(item.prices)) {
+              item.prices.forEach((price, index) => {
+                fields.append(createPriceField(price.label || `מחיר ${index + 1}`, price.value, (value) => { item.prices[index].value = value; }));
+              });
+            }
+            row.append(info, fields);
+            card.append(row);
+          });
+          fragment.append(card);
+        });
+
+        if (!fragment.childNodes.length) {
+          const empty = document.createElement("p");
+          empty.textContent = "לא נמצאו פריטים מתאימים.";
+          editor.append(empty);
+        } else {
+          editor.append(fragment);
+        }
+      }
+
+      async function enterAdmin(token, remember) {
+        loginButton.disabled = true;
+        loginButton.textContent = "מתחבר…";
+        loginError.textContent = "";
+        try {
+          await loadMenu(token);
+          accessToken = token;
+          if (remember) localStorage.setItem("laColinaAdminToken", token);
+          else sessionStorage.setItem("laColinaAdminToken", token);
+          loginView.classList.add("hidden");
+          adminView.classList.remove("hidden");
+          renderEditor();
+          setDirty(false);
+        } catch (error) {
+          loginError.textContent = error.message;
+          localStorage.removeItem("laColinaAdminToken");
+          sessionStorage.removeItem("laColinaAdminToken");
+        } finally {
+          loginButton.disabled = false;
+          loginButton.textContent = "כניסה למערכת";
+        }
+      }
+
+      loginForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        enterAdmin(tokenInput.value.trim(), rememberToken.checked);
+      });
+
+      searchInput.addEventListener("input", () => renderEditor(searchInput.value));
+
+      saveButton.addEventListener("click", async () => {
+        if (!isDirty) return;
+        saveButton.disabled = true;
+        saveButton.textContent = "שומר…";
+        try {
+          const response = await fetch(API_URL, {
+            method: "PUT",
+            headers: { ...apiHeaders(), "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: "Update menu prices from admin panel",
+              content: encodeContent(`${JSON.stringify(menuData, null, 2)}\n`),
+              sha: fileSha,
+              branch: BRANCH,
+            }),
+          });
+          if (!response.ok) {
+            if (response.status === 409) throw new Error("התפריט השתנה ממקום אחר. רעננו את העמוד ונסו שוב.");
+            if (response.status === 401 || response.status === 403) throw new Error("אין הרשאה לשמור את השינויים.");
+            throw new Error("השמירה נכשלה. נסו שוב בעוד רגע.");
+          }
+          const result = await response.json();
+          fileSha = result.content.sha;
+          setDirty(false);
+          showToast("המחירים נשמרו בהצלחה");
+        } catch (error) {
+          showToast(error.message, true);
+          saveButton.disabled = false;
+        } finally {
+          saveButton.textContent = "שמירת שינויים";
+        }
+      });
+
+      document.querySelector("#logoutButton").addEventListener("click", () => {
+        localStorage.removeItem("laColinaAdminToken");
+        sessionStorage.removeItem("laColinaAdminToken");
+        location.reload();
+      });
+
+      window.addEventListener("beforeunload", (event) => {
+        if (!isDirty) return;
+        event.preventDefault();
+        event.returnValue = "";
+      });
+
+      if (accessToken) enterAdmin(accessToken, Boolean(localStorage.getItem("laColinaAdminToken")));
+    </script>
+  </body>
+</html>
