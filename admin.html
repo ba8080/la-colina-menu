@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>ניהול מחירים | La Colina</title>
+    <title>ניהול תפריט | La Colina</title>
     <style>
       :root {
         color-scheme: light;
@@ -120,6 +120,37 @@
       .price-input:focus { outline: 3px solid rgba(113, 71, 55, 0.15); border-color: var(--brand); }
       .currency { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); }
 
+      .manager-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: -8px 0 22px; }
+      .section-manager-header { display: flex; align-items: end; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--line); background: #fbf7f0; }
+      .section-manager-header .editor-field { flex: 1; }
+      .section-items { display: grid; gap: 14px; padding: 16px; }
+      .item-editor { padding: 16px; border: 1px solid #e4dbce; border-radius: 16px; background: white; }
+      .item-editor-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+      .item-editor-title { margin: 0; font-size: 1rem; }
+      .item-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+      .icon-action { min-width: 42px; min-height: 40px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 9px; background: #f8f3eb; color: var(--ink); font-weight: 700; }
+      .icon-action.danger { color: var(--danger); border-color: #e4bab6; background: #fff5f4; }
+      .icon-action:disabled { cursor: default; opacity: .38; }
+      .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .editor-field { display: grid; gap: 6px; }
+      .editor-field.full { grid-column: 1 / -1; }
+      .editor-field > span, .editor-field > label { color: var(--muted); font-size: .88rem; font-weight: 700; }
+      .editor-input, .editor-textarea, .editor-select {
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: var(--ink);
+        background: white;
+      }
+      .editor-textarea { min-height: 82px; resize: vertical; line-height: 1.5; }
+      .editor-input:focus, .editor-textarea:focus, .editor-select:focus { outline: 3px solid rgba(113, 71, 55, .15); border-color: var(--brand); }
+      .pricing-editor { display: grid; gap: 10px; grid-column: 1 / -1; padding-top: 4px; }
+      .pricing-row { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(88px, .6fr) auto; gap: 8px; align-items: end; }
+      .add-item-button { width: 100%; min-height: 48px; border: 1px dashed var(--brand); border-radius: 12px; background: #fffaf3; color: var(--brand); font-weight: 800; }
+      .empty-section { margin: 4px 0; padding: 18px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted); text-align: center; }
+
       .login-shell { display: grid; min-height: 100vh; place-items: center; padding: 24px; }
       .login-card {
         width: min(460px, 100%);
@@ -168,6 +199,12 @@
         .item-row { grid-template-columns: 1fr; gap: 12px; }
         .price-fields { justify-content: stretch; }
         .price-field { flex: 1 1 92px; }
+        .section-manager-header { align-items: stretch; flex-direction: column; }
+        .section-manager-header .btn { width: 100%; }
+        .editor-grid { grid-template-columns: 1fr; }
+        .editor-field.full, .pricing-editor { grid-column: 1; }
+        .pricing-row { grid-template-columns: 1fr 1fr; }
+        .pricing-row .icon-action { grid-column: 1 / -1; }
       }
     </style>
   </head>
@@ -195,22 +232,25 @@
       <header class="topbar">
         <div class="brand">
           <img src="la-colina-logo.webp" alt="" />
-          <div><strong>La Colina</strong><span>מנהל מחירי התפריט</span></div>
+          <div><strong>La Colina</strong><span>מנהל התפריט</span></div>
         </div>
         <div class="top-actions">
           <button class="btn" id="logoutButton" type="button">יציאה</button>
           <button class="btn btn-primary" id="saveButton" type="button" disabled>שמירת שינויים</button>
-        </div>
       </header>
 
       <main>
         <div class="hero">
-          <h1>עדכון מחירים</h1>
-          <p>משנים את המחיר ולוחצים על “שמירת שינויים”. המחירים החדשים מתעדכנים באתר מיד.</p>
+          <h1>ניהול התפריט</h1>
+          <p>אפשר לערוך מנות ומחירים, להוסיף או למחוק פריטים וקטגוריות ולשנות את הסדר. בסיום לוחצים על “שמירת שינויים”.</p>
         </div>
         <div class="toolbar">
           <input class="search" id="searchInput" type="search" placeholder="חיפוש מוצר או קטגוריה…" />
           <span class="status" id="saveStatus">הכול מעודכן</span>
+        </div>
+        <div class="manager-actions">
+          <button class="btn" id="addFoodSection" type="button">הוספת קטגוריית אוכל</button>
+          <button class="btn" id="addWineSection" type="button">הוספת קטגוריית שתייה</button>
         </div>
         <div id="menuEditor"></div>
       </main>
@@ -292,57 +332,252 @@
         return field;
       }
 
+      function createTextField(label, value, onChange, options = {}) {
+        const field = document.createElement("label");
+        field.className = `editor-field${options.full ? " full" : ""}`;
+        const caption = document.createElement("span");
+        caption.textContent = label;
+        const input = document.createElement(options.textarea ? "textarea" : "input");
+        input.className = options.textarea ? "editor-textarea" : "editor-input";
+        if (!options.textarea) input.type = "text";
+        input.value = value || "";
+        input.placeholder = options.placeholder || "";
+        input.addEventListener("input", () => {
+          onChange(input.value);
+          setDirty(true);
+        });
+        field.append(caption, input);
+        return field;
+      }
+
+      function createSelectField(label, value, options, onChange) {
+        const field = document.createElement("label");
+        field.className = "editor-field";
+        const caption = document.createElement("span");
+        caption.textContent = label;
+        const select = document.createElement("select");
+        select.className = "editor-select";
+        options.forEach((option) => {
+          const element = document.createElement("option");
+          element.value = option.value;
+          element.textContent = option.label;
+          element.selected = option.value === value;
+          select.append(element);
+        });
+        select.addEventListener("change", () => {
+          onChange(select.value);
+          setDirty(true);
+        });
+        field.append(caption, select);
+        return field;
+      }
+
+      function createActionButton(text, handler, options = {}) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `icon-action${options.danger ? " danger" : ""}`;
+        button.textContent = text;
+        button.disabled = Boolean(options.disabled);
+        if (options.label) button.setAttribute("aria-label", options.label);
+        button.addEventListener("click", handler);
+        return button;
+      }
+
+      function priceMode(item) {
+        if (Array.isArray(item.prices)) return "labeled";
+        if (Array.isArray(item.priceOptions)) return "options";
+        return "single";
+      }
+
+      function changePriceMode(item, mode) {
+        delete item.price;
+        delete item.prices;
+        delete item.priceOptions;
+        if (mode === "single") item.price = 0;
+        if (mode === "labeled") item.prices = [{ label: "מחיר", value: 0 }];
+        if (mode === "options") item.priceOptions = [0];
+      }
+
+      function refreshEditor() {
+        setDirty(true);
+        renderEditor(searchInput.value);
+      }
+
+      function renderPricing(item, container) {
+        const mode = priceMode(item);
+        container.append(createSelectField("סוג מחיר", mode, [
+          { value: "single", label: "מחיר יחיד" },
+          { value: "labeled", label: "מחירים עם שם (למשל כוס / בקבוק)" },
+          { value: "options", label: "כמה גדלים ללא שם" },
+        ], (nextMode) => {
+          changePriceMode(item, nextMode);
+          refreshEditor();
+        }));
+
+        const pricing = document.createElement("div");
+        pricing.className = "pricing-editor";
+
+        if (mode === "single") {
+          pricing.append(createPriceField(item.priceLabel || "מחיר", item.price ?? 0, (value) => { item.price = value; }));
+        }
+
+        if (mode === "labeled") {
+          item.prices.forEach((price, index) => {
+            const row = document.createElement("div");
+            row.className = "pricing-row";
+            row.append(
+              createTextField("שם האפשרות", price.label, (value) => { price.label = value; }),
+              createPriceField("מחיר", price.value, (value) => { price.value = value; }),
+              createActionButton("מחיקה", () => {
+                item.prices.splice(index, 1);
+                refreshEditor();
+              }, { danger: true, disabled: item.prices.length === 1, label: `מחיקת אפשרות מחיר ${index + 1}` }),
+            );
+            pricing.append(row);
+          });
+          pricing.append(createActionButton("הוספת אפשרות מחיר", () => {
+            item.prices.push({ label: "אפשרות חדשה", value: 0 });
+            refreshEditor();
+          }));
+        }
+
+        if (mode === "options") {
+          item.priceOptions.forEach((price, index) => {
+            const row = document.createElement("div");
+            row.className = "pricing-row";
+            row.append(
+              createPriceField(`אפשרות ${index + 1}`, price, (value) => { item.priceOptions[index] = value; }),
+              createActionButton("מחיקה", () => {
+                item.priceOptions.splice(index, 1);
+                refreshEditor();
+              }, { danger: true, disabled: item.priceOptions.length === 1, label: `מחיקת מחיר ${index + 1}` }),
+            );
+            pricing.append(row);
+          });
+          pricing.append(createActionButton("הוספת מחיר נוסף", () => {
+            item.priceOptions.push(0);
+            refreshEditor();
+          }));
+        }
+
+        container.append(pricing);
+      }
+
+      function addItem(section) {
+        section.items.push({ name: "מנה חדשה", description: "", price: 0 });
+        searchInput.value = "";
+        refreshEditor();
+      }
+
+      function addSection(view) {
+        const section = {
+          id: `${view}-${Date.now()}`,
+          title: "קטגוריה חדשה",
+          eyebrow: "MENU",
+          accent: view === "food" ? "#b58b50" : "#762f37",
+          items: [],
+        };
+        if (view === "wine") section.group = "soft";
+        menuData[view].push(section);
+        searchInput.value = "";
+        refreshEditor();
+      }
+
       function renderEditor(filter = "") {
         editor.replaceChildren();
         const query = filter.trim().toLowerCase();
         const fragment = document.createDocumentFragment();
 
-        Object.values(menuData).flat().forEach((section) => {
-          const matchingItems = section.items.filter((item) => `${section.title} ${item.name} ${item.description || ""}`.toLowerCase().includes(query));
-          if (!matchingItems.length) return;
+        Object.entries(menuData).forEach(([view, sections]) => sections.forEach((section) => {
+          const sectionMatches = section.title.toLowerCase().includes(query);
+          const matchingItems = !query || sectionMatches
+            ? section.items
+            : section.items.filter((item) => `${item.name} ${item.description || ""} ${(item.badges || []).join(" ")}`.toLowerCase().includes(query));
+          if (query && !sectionMatches && !matchingItems.length) return;
 
           const card = document.createElement("section");
           card.className = "section-card";
-          const title = document.createElement("h2");
-          title.className = "section-title";
-          title.textContent = section.title;
-          card.append(title);
+          const header = document.createElement("div");
+          header.className = "section-manager-header";
+          header.append(createTextField("שם הקטגוריה", section.title, (value) => { section.title = value; }));
+          if (view === "wine") {
+            header.append(createSelectField("קבוצת תפריט", section.group || "soft", [
+              { value: "wines", label: "יין" },
+              { value: "alcohol", label: "בירה ואלכוהול" },
+              { value: "soft", label: "קפה ושתייה קלה" },
+            ], (value) => { section.group = value; }));
+          }
+          header.append(createActionButton("מחיקת קטגוריה", () => {
+            if (!window.confirm(`למחוק את הקטגוריה “${section.title}” ואת כל המנות שבה?`)) return;
+            sections.splice(sections.indexOf(section), 1);
+            refreshEditor();
+          }, { danger: true }));
+          card.append(header);
+
+          const itemsContainer = document.createElement("div");
+          itemsContainer.className = "section-items";
 
           matchingItems.forEach((item) => {
-            const row = document.createElement("div");
-            row.className = "item-row";
-            const info = document.createElement("div");
-            const name = document.createElement("div");
-            name.className = "item-name";
-            name.textContent = item.name;
-            info.append(name);
-            if (item.description) {
-              const description = document.createElement("div");
-              description.className = "item-description";
-              description.textContent = item.description;
-              info.append(description);
-            }
+            const itemIndex = section.items.indexOf(item);
+            const itemCard = document.createElement("article");
+            itemCard.className = "item-editor";
+            const itemHeader = document.createElement("div");
+            itemHeader.className = "item-editor-header";
+            const itemTitle = document.createElement("h3");
+            itemTitle.className = "item-editor-title";
+            itemTitle.textContent = item.name || "מנה ללא שם";
+            const itemActions = document.createElement("div");
+            itemActions.className = "item-actions";
+            itemActions.append(
+              createActionButton("↑", () => {
+                [section.items[itemIndex - 1], section.items[itemIndex]] = [section.items[itemIndex], section.items[itemIndex - 1]];
+                refreshEditor();
+              }, { disabled: itemIndex === 0, label: "העברת המנה למעלה" }),
+              createActionButton("↓", () => {
+                [section.items[itemIndex], section.items[itemIndex + 1]] = [section.items[itemIndex + 1], section.items[itemIndex]];
+                refreshEditor();
+              }, { disabled: itemIndex === section.items.length - 1, label: "העברת המנה למטה" }),
+              createActionButton("מחיקה", () => {
+                if (!window.confirm(`למחוק את המנה “${item.name}”?`)) return;
+                section.items.splice(itemIndex, 1);
+                refreshEditor();
+              }, { danger: true }),
+            );
+            itemHeader.append(itemTitle, itemActions);
 
-            const fields = document.createElement("div");
-            fields.className = "price-fields";
-            if (typeof item.price === "number") {
-              fields.append(createPriceField(item.priceLabel || "מחיר", item.price, (value) => { item.price = value; }));
-            }
-            if (Array.isArray(item.priceOptions)) {
-              item.priceOptions.forEach((value, index) => {
-                fields.append(createPriceField(`אפשרות ${index + 1}`, value, (nextValue) => { item.priceOptions[index] = nextValue; }));
-              });
-            }
-            if (Array.isArray(item.prices)) {
-              item.prices.forEach((price, index) => {
-                fields.append(createPriceField(price.label || `מחיר ${index + 1}`, price.value, (value) => { item.prices[index].value = value; }));
-              });
-            }
-            row.append(info, fields);
-            card.append(row);
+            const grid = document.createElement("div");
+            grid.className = "editor-grid";
+            grid.append(
+              createTextField("שם המנה", item.name, (value) => {
+                item.name = value;
+                itemTitle.textContent = value || "מנה ללא שם";
+              }),
+              createTextField("תגיות (מופרדות בפסיק)", (item.badges || []).join(", "), (value) => {
+                item.badges = value.split(",").map((badge) => badge.trim()).filter(Boolean);
+              }, { placeholder: "טבעוני, ללא גלוטן" }),
+              createTextField("תיאור", item.description || "", (value) => { item.description = value; }, { textarea: true, full: true }),
+            );
+            renderPricing(item, grid);
+            itemCard.append(itemHeader, grid);
+            itemsContainer.append(itemCard);
           });
+          if (!matchingItems.length) {
+            const empty = document.createElement("p");
+            empty.className = "empty-section";
+            empty.textContent = "הקטגוריה עדיין ריקה.";
+            itemsContainer.append(empty);
+          }
+          if (!query) {
+            const addButton = document.createElement("button");
+            addButton.type = "button";
+            addButton.className = "add-item-button";
+            addButton.textContent = "הוספת מנה לקטגוריה";
+            addButton.addEventListener("click", () => addItem(section));
+            itemsContainer.append(addButton);
+          }
+          card.append(itemsContainer);
           fragment.append(card);
-        });
+        }));
 
         if (!fragment.childNodes.length) {
           const empty = document.createElement("p");
@@ -351,6 +586,15 @@
         } else {
           editor.append(fragment);
         }
+      }
+
+      function validateMenu() {
+        Object.values(menuData).flat().forEach((section) => {
+          if (!section.title.trim()) throw new Error("יש קטגוריה ללא שם.");
+          section.items.forEach((item) => {
+            if (!item.name.trim()) throw new Error(`יש מנה ללא שם בקטגוריה “${section.title}”.`);
+          });
+        });
       }
 
       async function showAdmin(token, remember) {
@@ -394,12 +638,15 @@
       });
 
       searchInput.addEventListener("input", () => renderEditor(searchInput.value));
+      document.querySelector("#addFoodSection").addEventListener("click", () => addSection("food"));
+      document.querySelector("#addWineSection").addEventListener("click", () => addSection("wine"));
 
       saveButton.addEventListener("click", async () => {
         if (!isDirty) return;
         saveButton.disabled = true;
         saveButton.textContent = "שומר…";
         try {
+          validateMenu();
           const response = await fetch(`${API_URL}/menu`, {
             method: "PUT",
             headers: {
@@ -417,7 +664,7 @@
             throw new Error(result.error || "השמירה נכשלה. נסו שוב בעוד רגע.");
           }
           setDirty(false);
-          showToast("המחירים נשמרו בהצלחה");
+          showToast("התפריט נשמר בהצלחה");
         } catch (error) {
           showToast(error.message, true);
           saveButton.disabled = false;
